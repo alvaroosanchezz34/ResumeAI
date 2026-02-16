@@ -1,42 +1,49 @@
 const openai = require('../../config/openai');
 
 const generateContent = async (text) => {
-    const prompt = `
-You are an educational AI.
+    const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+            {
+                role: 'system',
+                content: 'You must respond only with valid JSON.'
+            },
+            {
+                role: 'user',
+                content: `
+Generate:
 
-From the following text, generate:
-1. A concise but complete summary
-2. 5 multiple choice questions (4 options, indicate correct index)
-3. 3 open development questions
-4. 5 flashcards (front/back)
+1. summary
+2. 5 test questions
+3. 3 development questions
+4. 5 flashcards
 
-Return ONLY valid JSON in this format:
+Return ONLY valid JSON with this format:
+
 {
   "summary": "",
-  "test": [
-    {
-      "question": "",
-      "options": ["", "", "", ""],
-      "correctAnswer": 0
-    }
-  ],
+  "test": [],
   "development": [],
-  "flashcards": [
-    { "front": "", "back": "" }
-  ]
+  "flashcards": []
 }
 
 TEXT:
 """${text}"""
-`;
-
-    const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.4
+`
+            }
+        ],
+        temperature: 0.4,
     });
 
-    return JSON.parse(completion.choices[0].message.content);
+    const content = completion.choices[0].message.content;
+
+    try {
+        return JSON.parse(content);
+    } catch (err) {
+        console.error("AI returned invalid JSON:", content);
+        throw new Error("Invalid AI response format");
+    }
 };
+
 
 module.exports = { generateContent };

@@ -5,6 +5,9 @@ const authRoutes = require('./modules/auth/auth.routes');
 const aiRoutes = require('./modules/ai/ai.routes');
 const authMiddleware = require('./middlewares/auth.middleware');
 const documentRoutes = require('./modules/documents/document.routes');
+const usageRoutes = require('./modules/usage/usage.routes')
+const generationRoutes = require('./modules/generation/generation.routes')
+
 
 const app = express();
 
@@ -21,6 +24,9 @@ app.get('/health', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/ai', authMiddleware, aiRoutes);
 app.use('/documents', authMiddleware, documentRoutes);
+app.use('/usage', usageRoutes);
+app.use('/generation', generationRoutes);
+
 
 // Errores (SIEMPRE al final)
 app.use(errorMiddleware);

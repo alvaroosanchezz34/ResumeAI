@@ -1,40 +1,31 @@
-const Usage = require('./usage.model');
-
-const DAILY_LIMITS = {
-    free: 5,
-    premium: 50,
-    premium_plus: 200,
-    custom: 999999
-};
+const plans = require('../../config/plans');
 
 const checkAndIncrementUsage = async (user) => {
-    // 🔥 ADMIN NO TIENE LÍMITES
-    if (user.role === 'admin') {
-        return;
+    const planConfig = plans[user.plan];
+
+    if (!planConfig) {
+        throw new Error('Invalid plan');
     }
 
-    const today = new Date().toISOString().slice(0, 10);
-    const limit = DAILY_LIMITS[user.plan];
+    // Admin ilimitado
+    if (user.plan === 'admin') return;
 
-    let usage = await Usage.findOne({ userId: user._id, date: today });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    if (!usage) {
-        usage = await Usage.create({
-            userId: user._id,
-            date: today,
-            requestsUsed: 0
-        });
+    if (!user.usageDate || user.usageDate < today) {
+        user.usageToday = 0;
+        user.usageDate = new Date();
     }
 
-    if (usage.requestsUsed >= limit) {
-        const err = new Error('Daily limit reached');
-        err.statusCode = 429;
-        throw err;
+    if (user.usageToday >= planConfig.dailyLimit) {
+        const error = new Error('Daily limit reached');
+        error.statusCode = 429;
+        throw error;
     }
 
-    usage.requestsUsed += 1;
-    await usage.save();
+    user.usageToday += 1;
+    await user.save();
 };
-
 
 module.exports = { checkAndIncrementUsage };
