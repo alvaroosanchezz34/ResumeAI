@@ -8,8 +8,16 @@ const generationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['full'],   // 👈 SOLO full ahora
+        enum: ['full'],
         required: true
+    },
+    title: {
+        type: String,
+        default: null   // Generado automáticamente por la IA
+    },
+    language: {
+        type: String,
+        default: null   // Idioma detectado ('es', 'en', 'fr', etc.)
     },
     originalText: {
         type: String,

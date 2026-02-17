@@ -18,7 +18,9 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.0",
+    "multer": "^2.0.2",
     "openai": "^6.19.0",
+    "pdf2json": "^4.0.2",
     "stripe": "^20.3.1",
     "uuid": "^13.0.0"
   },

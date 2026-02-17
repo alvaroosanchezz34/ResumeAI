@@ -6,7 +6,7 @@ const plans = require('../../config/plans');
 
 const generate = async (req, res, next) => {
     try {
-        const { text } = req.body;
+        const { text, language } = req.body;  // language es opcional
 
         if (!text || text.trim().length === 0) {
             return res.status(400).json({ message: 'Text is required' });
@@ -15,94 +15,63 @@ const generate = async (req, res, next) => {
             return res.status(400).json({ message: 'Text is too long. Maximum 8000 characters.' });
         }
 
-        if (!text) {
-            return res.status(400).json({
-                message: 'Text is required'
-            });
-        }
-
         const user = await User.findById(req.user.userId);
-
-        if (!user) {
-            return res.status(404).json({
-                message: 'User not found'
-            });
-        }
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
         const planConfig = plans[user.plan];
+        if (!planConfig) return res.status(403).json({ message: 'Invalid plan' });
 
-        if (!planConfig) {
-            return res.status(403).json({
-                message: 'Invalid plan'
-            });
-        }
-
-        // 🔢 Validar límite diario
         await usageService.checkAndIncrementUsage(user);
 
-        // 🤖 Generar contenido IA
-        const raw = await aiService.generateContent(text);
+        // Pasar idioma forzado (o null para auto-detect)
+        const raw = await aiService.generateContent(text, language || null);
 
-        // 🧠 Normalizar respuesta
-        let normalized = {
-            summary: raw?.summary || "",
-
+        const normalized = {
+            summary: raw?.summary || '',
             test: Array.isArray(raw?.test)
                 ? raw.test.map(q => {
                     const options = Array.isArray(q?.options) ? q.options : [];
-
                     let correctIndex = 0;
-
-                    if (typeof q?.correctAnswer === "number") {
+                    if (typeof q?.correctAnswer === 'number') {
                         correctIndex = q.correctAnswer;
                     } else if (q?.answer && options.length > 0) {
                         const index = options.indexOf(q.answer);
                         correctIndex = index >= 0 ? index : 0;
                     }
-
-                    return {
-                        question: q?.question || "",
-                        options,
-                        correctAnswer: correctIndex
-                    };
+                    return { question: q?.question || '', options, correctAnswer: correctIndex };
                 })
                 : [],
-
-            development: Array.isArray(raw?.development)
-                ? raw.development
-                : [],
-
+            development: Array.isArray(raw?.development) ? raw.development : [],
             flashcards: Array.isArray(raw?.flashcards)
                 ? raw.flashcards.map(card => ({
-                    front: card?.front || card?.term || "",
-                    back: card?.back || card?.definition || ""
+                    front: card?.front || card?.term || '',
+                    back: card?.back || card?.definition || ''
                 }))
                 : []
         };
 
-        // 🔒 FILTRAR SEGÚN PLAN
         if (user.plan === 'free') {
             normalized.test = [];
             normalized.development = [];
         }
 
-        if (user.plan === 'premium') {
-            normalized.flashcards = [];
-        }
-
-        // 💾 Guardar historial completo (no filtrado)
-        await Generation.create({
+        const generation = await Generation.create({
             user: user._id,
             type: 'full',
+            title: raw?.title || null,
+            language: raw?.detectedLanguage || null,
             originalText: text,
             result: normalized
         });
 
-        console.log("AI RESULT:", normalized);
-
         return res.json({
             success: true,
-            data: normalized
+            data: {
+                ...normalized,
+                _id: generation._id,
+                title: generation.title,
+                language: generation.language
+            }
         });
 
     } catch (err) {
