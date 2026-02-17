@@ -8,12 +8,11 @@ export default function AuthCard({
     children: React.ReactNode;
 }) {
     return (
-        <div className="bg-[#111111] border border-white/10 rounded-xl p-8 space-y-6 shadow-xl">
-            <div className="space-y-2">
-                <h1 className="text-2xl font-semibold">{title}</h1>
-                <p className="text-white/50 text-sm">{subtitle}</p>
+        <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-8 shadow-2xl shadow-black/40">
+            <div className="mb-7">
+                <h1 className="text-2xl font-black tracking-tight">{title}</h1>
+                <p className="text-white/35 text-sm mt-1.5">{subtitle}</p>
             </div>
-
             {children}
         </div>
     );

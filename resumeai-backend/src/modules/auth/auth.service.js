@@ -29,6 +29,11 @@ const login = async ({ email, password }) => {
     }
 
     const match = await bcrypt.compare(password, user.passwordHash);
+    if (user.status === 'banned') {
+        const err = new Error('Account suspended');
+        err.statusCode = 403;
+        throw err;
+    }
     if (!match) {
         const err = new Error('Invalid credentials');
         err.statusCode = 401;

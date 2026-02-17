@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export const api = async (
     endpoint: string,
@@ -24,4 +24,19 @@ export const api = async (
     }
 
     return data;
+};
+
+// Redirige al usuario a Stripe Checkout
+export const startCheckout = async (plan: 'premium' | 'pro') => {
+    const res = await api('/stripe/checkout', {
+        method: 'POST',
+        body: JSON.stringify({ plan })
+    });
+    if (res.url) window.location.href = res.url;
+};
+
+// Abre el portal de gestión de Stripe
+export const openBillingPortal = async () => {
+    const res = await api('/stripe/portal');
+    if (res.url) window.location.href = res.url;
 };

@@ -1,31 +1,30 @@
+// usage.service.js — versión corregida
+const Usage = require('./usage.model');
 const plans = require('../../config/plans');
 
 const checkAndIncrementUsage = async (user) => {
-    const planConfig = plans[user.plan];
-
-    if (!planConfig) {
-        throw new Error('Invalid plan');
-    }
-
-    // Admin ilimitado
     if (user.plan === 'admin') return;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const planConfig = plans[user.plan];
+    if (!planConfig) throw Object.assign(new Error('Invalid plan'), { statusCode: 403 });
 
-    if (!user.usageDate || user.usageDate < today) {
-        user.usageToday = 0;
-        user.usageDate = new Date();
+    const today = new Date().toISOString().split('T')[0];
+
+    const usage = await Usage.findOneAndUpdate(
+        { userId: user._id, date: today },
+        { $inc: { requestsUsed: 1 } },
+        { upsert: true, new: true }
+    );
+
+    // Comprobamos DESPUÉS de incrementar
+    if (usage.requestsUsed > planConfig.dailyLimit) {
+        // Revertir el incremento
+        await Usage.findOneAndUpdate(
+            { userId: user._id, date: today },
+            { $inc: { requestsUsed: -1 } }
+        );
+        throw Object.assign(new Error('Daily limit reached'), { statusCode: 429 });
     }
-
-    if (user.usageToday >= planConfig.dailyLimit) {
-        const error = new Error('Daily limit reached');
-        error.statusCode = 429;
-        throw error;
-    }
-
-    user.usageToday += 1;
-    await user.save();
 };
 
 module.exports = { checkAndIncrementUsage };

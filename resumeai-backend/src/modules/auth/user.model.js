@@ -13,10 +13,9 @@ const userSchema = new mongoose.Schema(
 
         plan: {
             type: String,
-            enum: ['free', 'go', 'premium', 'custom', 'admin'],
+            enum: ['free', 'premium', 'pro', 'custom', 'admin'],
             default: 'free'
         },
-
 
         status: {
             type: String,
@@ -24,11 +23,15 @@ const userSchema = new mongoose.Schema(
             default: 'active'
         },
 
+        // Stripe
+        stripeCustomerId: { type: String, default: null },
+        stripeSubscriptionId: { type: String, default: null },
+        planExpiresAt: { type: Date, default: null },
+
         emailVerified: { type: Boolean, default: false },
         lastLogin: Date
     },
     { timestamps: true }
 );
-
 
 module.exports = mongoose.model('User', userSchema);

@@ -1,7 +1,7 @@
 const Generation = require('./generation.model');
 const Usage = require('../usage/usage.model');
 const User = require('../auth/user.model');
-const planLimits = require('../../config/planLimits');
+const plans = require('../../config/plans');
 
 const getStats = async (req, res) => {
     const userId = req.user.userId;
@@ -21,7 +21,7 @@ const getStats = async (req, res) => {
 
     const user = await User.findById(userId);
 
-    const limit = planLimits[user.plan] || 0;
+    const limit = plans[user.plan]?.dailyLimit ?? 0;
 
     res.json({
         success: true,

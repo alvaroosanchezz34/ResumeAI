@@ -8,6 +8,13 @@ const generate = async (req, res, next) => {
     try {
         const { text } = req.body;
 
+        if (!text || text.trim().length === 0) {
+            return res.status(400).json({ message: 'Text is required' });
+        }
+        if (text.length > 8000) {
+            return res.status(400).json({ message: 'Text is too long. Maximum 8000 characters.' });
+        }
+
         if (!text) {
             return res.status(400).json({
                 message: 'Text is required'

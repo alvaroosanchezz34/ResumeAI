@@ -3,11 +3,11 @@ const plans = {
         dailyLimit: 5,
         features: ['summary', 'flashcards']
     },
-    go: {
+    premium: {
         dailyLimit: 50,
         features: ['summary', 'flashcards', 'test', 'development']
     },
-    premium: {
+    pro: {
         dailyLimit: 200,
         features: ['summary', 'flashcards', 'test', 'development']
     },

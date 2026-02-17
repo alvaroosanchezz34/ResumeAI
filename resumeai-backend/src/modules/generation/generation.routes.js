@@ -8,12 +8,25 @@ const { getStats } = require('./generation.stats');
 router.get('/stats', authMiddleware, getStats);
 
 router.get('/', authMiddleware, async (req, res) => {
-    const generations = await Generation
-        .find({ user: req.user.userId })
-        .sort({ createdAt: -1 })
-        .select('_id createdAt');
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    res.json({ success: true, data: generations });
+    const [generations, total] = await Promise.all([
+        Generation.find({ user: req.user.userId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .select('_id type createdAt'),
+        Generation.countDocuments({ user: req.user.userId })
+    ]);
+
+    res.json({
+        success: true,
+        data: generations,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page
+    });
 });
 
 router.get('/:id', authMiddleware, async (req, res) => {
