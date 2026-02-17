@@ -13,11 +13,11 @@ const generationSchema = new mongoose.Schema({
     },
     title: {
         type: String,
-        default: null   // Generado automáticamente por la IA
+        default: null
     },
     language: {
         type: String,
-        default: null   // Idioma detectado ('es', 'en', 'fr', etc.)
+        default: null
     },
     originalText: {
         type: String,
@@ -26,9 +26,22 @@ const generationSchema = new mongoose.Schema({
     result: {
         type: Object,
         required: true
+    },
+    // ── Compartir ──────────────────────────────────────────────
+    isPublic: {
+        type: Boolean,
+        default: false
+    },
+    shareId: {
+        type: String,
+        default: null,
+        unique: true,
+        sparse: true
     }
 }, {
     timestamps: true
 });
+
+generationSchema.index({ shareId: 1 });
 
 module.exports = mongoose.model('Generation', generationSchema);

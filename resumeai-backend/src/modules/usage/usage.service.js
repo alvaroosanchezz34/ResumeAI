@@ -1,4 +1,3 @@
-// usage.service.js — versión corregida
 const Usage = require('./usage.model');
 const plans = require('../../config/plans');
 
@@ -9,20 +8,29 @@ const checkAndIncrementUsage = async (user) => {
     if (!planConfig) throw Object.assign(new Error('Invalid plan'), { statusCode: 403 });
 
     const today = new Date().toISOString().split('T')[0];
+    const limit = planConfig.dailyLimit;
 
-    const usage = await Usage.findOneAndUpdate(
+    // Primero aseguramos que existe el documento para hoy (upsert sin incrementar)
+    await Usage.findOneAndUpdate(
         { userId: user._id, date: today },
-        { $inc: { requestsUsed: 1 } },
+        { $setOnInsert: { requestsUsed: 0 } },
         { upsert: true, new: true }
     );
 
-    // Comprobamos DESPUÉS de incrementar
-    if (usage.requestsUsed > planConfig.dailyLimit) {
-        // Revertir el incremento
-        await Usage.findOneAndUpdate(
-            { userId: user._id, date: today },
-            { $inc: { requestsUsed: -1 } }
-        );
+    // Incremento atómico SOLO si no se ha superado el límite
+    // Esta operación es atómica en MongoDB — no hay race condition
+    const updated = await Usage.findOneAndUpdate(
+        {
+            userId: user._id,
+            date: today,
+            requestsUsed: { $lt: limit }   // condición: solo si aún queda cuota
+        },
+        { $inc: { requestsUsed: 1 } },
+        { new: true }
+    );
+
+    // Si updated es null, la condición no se cumplió → límite alcanzado
+    if (!updated) {
         throw Object.assign(new Error('Daily limit reached'), { statusCode: 429 });
     }
 };

@@ -8,6 +8,7 @@ const documentRoutes = require('./modules/documents/document.routes');
 const usageRoutes = require('./modules/usage/usage.routes');
 const generationRoutes = require('./modules/generation/generation.routes');
 const stripeRoutes = require('./modules/stripe/stripe.routes');
+const adminRoutes = require('./modules/admin/admin.routes');
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/documents',  authMiddleware, documentRoutes);
 app.use('/usage',      usageRoutes);
 app.use('/generation', generationRoutes);
 app.use('/stripe',     stripeRoutes);
+app.use('/admin',      adminRoutes);
 
 // ── Error handler (SIEMPRE al final) ─────────────────────────────────────────
 app.use(errorMiddleware);

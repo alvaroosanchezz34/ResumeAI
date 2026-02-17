@@ -29,6 +29,7 @@ const userSchema = new mongoose.Schema(
         planExpiresAt: { type: Date, default: null },
 
         emailVerified: { type: Boolean, default: false },
+        onboardingCompleted: { type: Boolean, default: false },  // ← nuevo
         lastLogin: Date
     },
     { timestamps: true }
