@@ -273,7 +273,7 @@ export default function GeneratePage() {
     const charsLeft = MAX_CHARS - chars;
 
     return (
-        <div className="p-8 max-w-4xl space-y-8">
+        <div className="page-container space-y-8 max-w-5xl">
             <div>
                 <h1 className="text-3xl font-black tracking-tight">Generate</h1>
                 <p className="text-white/35 text-sm mt-1">Paste text or upload a PDF to get study material instantly.</p>

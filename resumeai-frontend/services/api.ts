@@ -15,6 +15,16 @@ export const api = async (endpoint: string, options: RequestInit = {}) => {
     });
 
     const data = await res.json();
+
+    // Si el token expiró o es inválido, redirigir al login automáticamente
+    if (res.status === 401) {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+        throw new Error('Session expired. Please log in again.');
+    }
+
     if (!res.ok) throw new Error(data.message || 'API error');
     return data;
 };
@@ -33,6 +43,15 @@ export const uploadPdf = async (file: File): Promise<{ text: string; chars: numb
     });
 
     const data = await res.json();
+
+    if (res.status === 401) {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+        throw new Error('Session expired. Please log in again.');
+    }
+
     if (!res.ok) throw new Error(data.message || 'PDF upload failed');
     return data.data;
 };

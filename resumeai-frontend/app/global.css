@@ -2,27 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Reset suave */
-html,
-body {
+html, body {
     margin: 0;
     padding: 0;
 }
 
 /* Scrollbar oscura tipo Vercel */
-::-webkit-scrollbar {
-    width: 8px;
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0d0d0d; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+
+/* Padding responsive en páginas del dashboard */
+.page-container {
+    padding: 1.5rem 1rem;
 }
 
-::-webkit-scrollbar-track {
-    background: #0d0d0d;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #2a2a2a;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #3a3a3a;
+@media (min-width: 768px) {
+    .page-container {
+        padding: 2rem;
+    }
 }

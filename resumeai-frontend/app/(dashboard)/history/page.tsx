@@ -134,7 +134,7 @@ export default function HistoryPage() {
     };
 
     return (
-        <div className="p-8 max-w-3xl space-y-7">
+        <div className="page-container space-y-8 max-w-5xl">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-black tracking-tight">History</h1>

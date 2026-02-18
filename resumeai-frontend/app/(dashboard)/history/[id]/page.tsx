@@ -20,6 +20,94 @@ const LANG_FLAG: Record<string, string> = {
     it: '🇮🇹', pt: '🇵🇹', ca: '🏴', nl: '🇳🇱', ru: '🇷🇺'
 };
 
+// ── Share Button ──────────────────────────────────────────────────────────────
+function ShareButton({ generationId }: { generationId: string }) {
+    const [isPublic, setIsPublic]   = useState(false);
+    const [shareId, setShareId]     = useState<string | null>(null);
+    const [loading, setLoading]     = useState(false);
+    const [copied, setCopied]       = useState(false);
+
+    const shareUrl = shareId
+        ? `${typeof window !== 'undefined' ? window.location.origin : ''}/share/${shareId}`
+        : null;
+
+    const enable = async () => {
+        setLoading(true);
+        try {
+            const res = await api(`/generation/${generationId}/share`, { method: 'POST' });
+            setShareId(res.shareId);
+            setIsPublic(true);
+        } catch (err: any) {
+            alert(err.message || 'Failed to create share link');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const disable = async () => {
+        setLoading(true);
+        try {
+            await api(`/generation/${generationId}/share`, { method: 'DELETE' });
+            setIsPublic(false);
+        } catch (err: any) {
+            alert(err.message || 'Failed to disable share link');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const copy = async () => {
+        if (!shareUrl) return;
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    if (!isPublic) {
+        return (
+            <button
+                onClick={enable}
+                disabled={loading}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 text-white/40 hover:text-white hover:border-white/25 text-sm transition-all disabled:opacity-40"
+            >
+                {loading ? '…' : <><span>🔗</span> Share</>}
+            </button>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-2 flex-wrap">
+            {/* URL del link */}
+            <div className="flex items-center gap-2 bg-white/[0.04] border border-violet-500/25 rounded-xl px-3 py-1.5">
+                <span className="text-violet-400 text-xs">🔗</span>
+                <span className="text-white/50 text-xs font-mono truncate max-w-[180px]">
+                    /share/{shareId?.slice(0, 8)}…
+                </span>
+            </div>
+
+            {/* Copiar */}
+            <button
+                onClick={copy}
+                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all
+                    ${copied
+                        ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                        : 'border-white/10 text-white/40 hover:text-white hover:border-white/25'}`}
+            >
+                {copied ? '✓ Copied!' : 'Copy link'}
+            </button>
+
+            {/* Desactivar */}
+            <button
+                onClick={disable}
+                disabled={loading}
+                className="px-3 py-1.5 rounded-xl border border-red-500/20 text-red-400/60 hover:text-red-400 hover:bg-red-500/8 text-xs transition-all disabled:opacity-40"
+            >
+                {loading ? '…' : 'Disable'}
+            </button>
+        </div>
+    );
+}
+
 function QuizView({ questions }: { questions: Question[] }) {
     const [answers, setAnswers] = useState<Record<number, number>>({});
     const [revealed, setRevealed] = useState<Record<number, boolean>>({});
@@ -237,6 +325,7 @@ export default function HistoryDetailPage({ params }: { params: Promise<{ id: st
                     {result.test?.length ? <span className="text-xs bg-white/5 border border-white/8 text-white/40 px-2.5 py-1 rounded-lg">📝 {result.test.length}q</span> : null}
                     {result.flashcards?.length ? <span className="text-xs bg-white/5 border border-white/8 text-white/40 px-2.5 py-1 rounded-lg">🃏 {result.flashcards.length}</span> : null}
                     {result.development?.length ? <span className="text-xs bg-white/5 border border-white/8 text-white/40 px-2.5 py-1 rounded-lg">💬 {result.development.length}</span> : null}
+                    <ShareButton generationId={id} />
                     <button onClick={handleDelete} disabled={deleting}
                         className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Delete session">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
